@@ -421,6 +421,11 @@ namespace Sharphound
                 context = links.SaveCacheFile(context);
                 links.Finish(context);
             });
+            // Accessor function for the PS1 to work, do not change or remove
+            public static void InvokeSharpHound(string[] args)
+            {
+                Main(args).Wait();
+            }
         }
     }
 
