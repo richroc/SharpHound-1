@@ -19,7 +19,7 @@ function Invoke-BloodHound{
 			Group
 			LocalGroup
 			GPOLocalGroup
-            Session
+            		Session
 			LoggedOn
 			ObjectProps
 			ACL
@@ -222,7 +222,7 @@ function Invoke-BloodHound{
 		[String]
 		$CacheName,
 		
-		[String]
+		[Switch]
 		$MemCache,
 		
 		[Switch]
@@ -376,7 +376,6 @@ function Invoke-BloodHound{
 			
     if ($MemCache){
         $vars.Add("--MemCache");
-        $vars.Add($MemCache);
     }
 	
     if ($RebuildCache){
