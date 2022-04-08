@@ -85,6 +85,7 @@ namespace Sharphound
         public IContext Initialize(IContext context, LDAPConfig options)
         {
             context.Logger.LogTrace("Entering initialize link");
+            CommonLib.ReconfigureLogging(context.Logger);
             //We've successfully parsed arguments, lets do some options post-processing.
             var currentTime = DateTime.Now;
             //var padString = new string('-', initString.Length);
@@ -111,6 +112,24 @@ namespace Sharphound
 
             if (context.LoopInterval == TimeSpan.Zero)
                 context.LoopInterval = TimeSpan.FromSeconds(30);
+
+            if (!context.Flags.NoOutput)
+            {
+                var filename = context.ResolveFileName(Path.GetRandomFileName(), "", false);
+                try
+                {
+                    using (File.Create(filename))
+                    {
+                    }
+                    
+                    File.Delete(filename);
+                }
+                catch (Exception e)
+                {
+                    context.Logger.LogCritical("unable to write to target directory");
+                    context.Flags.IsFaulted = true;
+                }
+            }
             
             context.Logger.LogTrace("Exiting initialize link");
 
@@ -257,6 +276,8 @@ namespace Sharphound
 
         public IContext SaveCacheFile(IContext context)
         {
+            if (context.Flags.MemCache)
+                return context;
             // 15. Program exit started. Save the cache file
             var cache = Cache.GetCacheInstance();
             var serialized = JsonSerializer.Serialize(cache, StandardResolver.AllowPrivate);
@@ -338,7 +359,7 @@ namespace Sharphound
                     NoOutput = false,
                     Stealth = options.Stealth,
                     RandomizeFilenames = options.RandomFileNames,
-                    NoSaveCache = options.MemCache,
+                    MemCache = options.MemCache,
                     CollectAllProperties = options.CollectAllProperties,
                     DCOnly = dconly,
                     PrettyPrint = options.PrettyPrint,
@@ -349,7 +370,8 @@ namespace Sharphound
                 {
                     Port = options.LDAPPort,
                     DisableSigning = options.DisableSigning,
-                    SSL = options.SecureLDAP
+                    SSL = options.SecureLDAP,
+                    AuthType = AuthType.Negotiate
                 };
 
                 if (options.DomainController != null) ldapOptions.Server = options.DomainController;
